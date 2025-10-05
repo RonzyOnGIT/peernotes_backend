@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "dev:server": "ts-node src/server/index.ts"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "puppeteer": "^24.23.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "ts-node": "^10.9.2"
+  }
+}
