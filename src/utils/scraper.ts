@@ -1,10 +1,22 @@
+//scraper.ts
 import puppeteer from 'puppeteer';
+import { connectDB, disconnectDB } from '../db/db.js';
+import mongoose from 'mongoose';
 
 export type Course = {
     department: string | null; // CSE
     code: string | null; // 1325
     course_name: string | null; // Object oriented 
 }
+
+// MongoDB Schema
+const courseSchema = new mongoose.Schema<Course>({
+    department: String,
+    code: String,
+    course_name: String,
+});
+  
+const CourseModel = mongoose.model<Course>('Course', courseSchema);
 
 // // returns array of strings like ["Accounting (ACCT)", ""]
 // async function scrapeDepartments() {
@@ -99,11 +111,32 @@ export async function scrapeCourses(): Promise<Course[]> {
 
         return allCourses; // <--- THIS RETURNS THE ARRAY
     } catch (e) {
-        console.error(e);
+        console.error('Scraping error:', e);
         return []; // return empty array on error
     }
 }
 
-scrapeCourses();
+// --- Main script to run scraper and save to MongoDB ---
+async function main() {
+    await connectDB();
+  
+    const courses = await scrapeCourses();
+  
+    // Insert courses to MongoDB (avoid duplicates if needed)
+    for (const course of courses) {
+      if (course.department && course.code && course.course_name) {
+        try {
+          await CourseModel.create(course);
+          console.log(`Inserted: ${course.department} ${course.code}`);
+        } catch (err) {
+          console.error(`Failed to insert ${course.department} ${course.code}:`, err);
+        }
+      }
+    }
+  
+    await disconnectDB();
+  }
+  
+  main();
 
 
